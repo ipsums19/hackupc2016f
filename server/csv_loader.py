@@ -9,8 +9,8 @@ def load_data():
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
         next(spamreader)
         for row in spamreader:
-            x = round(float(row[2]),4)
-            y = round(float(row[3]),4)
+            x = round(float(row[3]),4)
+            y = round(float(row[2]),4)
             t = (x,y)
             if t not in d:
                 d[t] = []
@@ -33,10 +33,10 @@ def get_intensity(x1, y1, x2, y2):
 
 @app.route("/", methods=['GET'])
 def data_details():
-    west = float(request.args.get('west','40'))
+    west = float(request.args.get('west','41'))
     north = float(request.args.get('north','40'))
     east = float(request.args.get('east','42'))
-    south = float(request.args.get('south','0'))
+    south = float(request.args.get('south','41'))
     return json.dumps(get_intensity(west, north, east, south))
 
 if __name__ == "__main__":
