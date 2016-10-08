@@ -20,8 +20,6 @@ def load_data():
                 d[t] = [0, 0]
             d[t][0] += float(row[7])
             d[t][1] += 1
-    for i in d:
-        d[i] = round(d[i][0] / d[i][1], PRECISION)
     return d
 
 DATA = load_data()
@@ -36,10 +34,12 @@ def reduce_response(data, precision):
             y = round(y, precision)
             t = (x, y)
             if t not in new_data:
-                new_data = [0, 0]
-            new_data[(x, y)][0] += value
-            new_data[(x, y)][1] += 1
+                new_data[t] = [0, 0]
+            new_data[t][0] += value[0]
+            new_data[t][1] += value[1]
         data = new_data
+    for i in data:
+        data[i] = round(data[i][0] / data[i][1], PRECISION)
     return data
 
 
