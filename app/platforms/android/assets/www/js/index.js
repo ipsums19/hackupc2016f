@@ -17,7 +17,7 @@
  * under the License.
  */
 
-var SERVICE_API_URL = "";
+var SERVICE_API_URL = "http://alessio.cc:5000";
 
 var user = {
     position: {
@@ -27,12 +27,11 @@ var user = {
         spd: null
     },
     updateGeo: function(position) {
-        console.log('hoal 22');
         try {
-        this.position.lat = position.coords.latitude || this.position.lat;
-        this.position.lon = position.coords.longitude || this.position.lon;
-        this.position.dir = position.coords.heading || this.position.dir;
-        this.position.spd = position.coords.speed || this.position.spd;
+            this.position.lat = position.coords.latitude || this.position.lat;
+            this.position.lon = position.coords.longitude || this.position.lon;
+            this.position.dir = position.coords.heading || this.position.dir;
+            this.position.spd = position.coords.speed || this.position.spd;
         } catch (e) {
             console.log(e.message);
         }
@@ -53,6 +52,8 @@ var GMaps = {
         };
 
         GMaps.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+        GMaps.map.addListener('zoom_changed', GMaps.updateHeatmap);
+        GMaps.map.addListener('dragend', GMaps.updateHeatmap);
         GMaps.marker = new google.maps.Marker({
             position: latLong,
             map: GMaps.map
@@ -69,7 +70,6 @@ var GMaps = {
         GMaps.map.setCenter(GMaps.marker.getPosition());
     },
     updateMap: function(position) {
-        console.log("map update");
         var updatedLatitude = position.coords.latitude;
         var updatedLongitude = position.coords.longitude;
 
@@ -82,32 +82,41 @@ var GMaps = {
             GMaps.currLon = updatedLongitude;
 
             GMaps.getMap(updatedLatitude, updatedLongitude);
-            $.getJSON(SERVICE_API_URL, GMaps.map.getBounds().toJSON(), GMaps.getHeatmap);
+            GMaps.updateHeatmap();
         }
     },
+    updateHeatmap: function() {
+        $.getJSON(SERVICE_API_URL, GMaps.map.getBounds().toJSON(), GMaps.getHeatmap);
+    },
     getHeatmap: function(results) {
+        console.log("heatmap loding");
         var heatmapData = [];
         for (var i = 0; i < results.length; i += 3) {
-            var lat = results[i];
-            var lon = results[i + 1];
+            var lon = results[i];
+            var lat = results[i + 1];
             var value = results[i + 2];
             var latLng = new google.maps.LatLng(lat, lon);
             var weightedLoc = {
                 location: latLng,
-                weight: Math.pow(2, value)
+                weight: value
             };
             heatmapData.push(weightedLoc);
         }
+        console.log(heatmapData.length);
         if (heatmapData.length == 0) return;
         if (GMaps.heatmap == null) {
+            console.log("creating heatmap");
             GMaps.heatmap = new google.maps.visualization.HeatmapLayer({
                 data: heatmapData,
                 dissipating: false,
-                map: map,
+                map: GMaps.map,
                 maxIntensity: 32
             });
+            console.log("done heatmap");
         } else {
+            console.log("setting data");
             GMaps.heatmap.setData(heatmapData);
+            console.log("data set");
         }
     }
 }
@@ -128,10 +137,12 @@ var App = {
         document.addEventListener('deviceready', App.onDeviceReady, false);
     },
     onGeoSuccess: function(position) {
-        console.log('position recieved');
+        try {
         user.updateGeo(position);
-        console.log('position recieved 2');
         GMaps.updateMap(position);
+        } catch (e) {
+            console.log(e.message);
+        }
     },
     onGeoError: function(error) {
         var parentElement = document.getElementById('geomsg');
