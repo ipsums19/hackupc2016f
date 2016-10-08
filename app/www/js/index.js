@@ -43,6 +43,8 @@ var GMaps = {
     currLon: 0,
     map: null,
     marker: null,
+    loading: false,
+    timeout: null,
     initMap: function() {
         var latLong = new google.maps.LatLng(0, 0);
         var mapOptions = {
@@ -86,16 +88,25 @@ var GMaps = {
         }
     },
     updateHeatmap: function() {
+        if (GMaps.loading) return;
+        GMaps.loading = true;
         $.getJSON(SERVICE_API_URL, GMaps.map.getBounds().toJSON(), GMaps.getHeatmap);
+        GMaps.timeout = setTimeout(function(){GMaps.loading = false;}, 10000);
     },
     getHeatmap: function(results) {
-        console.log("heatmap loding");
+        clearTimeout(GMaps.timeout);
+        GMaps.loading = false;
+        console.log("heatmap loading");
         var heatmapData = [];
         for (var i = 0; i < results.length; i += 3) {
             var lon = results[i];
             var lat = results[i + 1];
             var value = results[i + 2];
             var latLng = new google.maps.LatLng(lat, lon);
+            value = 15 - value
+            if (value < 0) {
+                value = 0;
+            }
             var weightedLoc = {
                 location: latLng,
                 weight: value
@@ -105,18 +116,15 @@ var GMaps = {
         console.log(heatmapData.length);
         if (heatmapData.length == 0) return;
         if (GMaps.heatmap == null) {
-            console.log("creating heatmap");
             GMaps.heatmap = new google.maps.visualization.HeatmapLayer({
                 data: heatmapData,
-                dissipating: false,
+                dissipating: true,
                 map: GMaps.map,
-                maxIntensity: 32
+                maxIntensity: 15,
+                radius: 75
             });
-            console.log("done heatmap");
         } else {
-            console.log("setting data");
             GMaps.heatmap.setData(heatmapData);
-            console.log("data set");
         }
     }
 }

@@ -46,7 +46,7 @@ def reduce_response(data, precision):
 def get_intensity(x1, y1, x2, y2):
     ret = {}
     for t in DATA:
-        if x1 < t[0] < x2 and y2 < t[1] < y1:
+        if x1 - 0.0001 < t[0] < x2 + 0.0001 and y2 - 0.0001 < t[1] < y1 + 0.0001:
             ret[t] = DATA[t]
     return ret
 
