@@ -17,7 +17,7 @@ def load_data():
             y = round(float(row[2]), PRECISION)
             t = (x,y)
             if t not in d:
-                d[t] = [[0, 0]]
+                d[t] = [0, 0]
             d[t][0] += float(row[7])
             d[t][1] += 1
     for i in d:
@@ -36,7 +36,7 @@ def reduce_response(data, precision):
             y = round(y, precision)
             t = (x, y)
             if t not in new_data:
-                new_data = [[0, 0]]
+                new_data = [0, 0]
             new_data[(x, y)][0] += value
             new_data[(x, y)][1] += 1
         data = new_data
