@@ -68,6 +68,7 @@ def data_details():
     south = float(request.args.get('south','41'))
     data = get_intensity(west, north, east, south)
     data = reduce_response(data, PRECISION)
+    data = data_to_list(data)
     return json.dumps(data)
 
 if __name__ == "__main__":
